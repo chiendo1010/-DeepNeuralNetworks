@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 import struct
-
+import os   #Use for playing sound.
 
 
 
@@ -264,8 +264,8 @@ def compute_cost(AL, Y):
     
     one_hot = one_hot_encode(Y, AL.shape[0])
     # Compute loss from aL and y.
-    cost = (1./m) * np.sum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
-    # cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    # cost = (1./m) * np.sum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
     
     cost = np.squeeze(cost)      # To make sure your cost's shape is what we expect (e.g. this turns [[17]] into 17).
     assert(cost.shape == ())
@@ -500,9 +500,8 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
         ### END CODE HERE ###
                 
         # Print the cost every 100 training example
-        if print_cost and i % 100 == 0:
+        if print_cost and (i % 100 == 0 or i == num_iterations-1):
             print ("Cost after iteration %i: %f" %(i, cost))
-        if print_cost and i % 100 == 0:
             costs.append(cost)
             
     # plot the cost
@@ -513,3 +512,8 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     plt.show()
     
     return parameters
+
+def playSoundFinish():
+    duration = 2  # second
+    freq = 500  # Hz
+    os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))

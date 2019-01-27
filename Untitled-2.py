@@ -62,10 +62,10 @@ test_x = test_x_flatten/255.
 layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
 
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.1, num_iterations = 1600, print_cost = True)
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.1, num_iterations = 2000, print_cost = True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
-
+playSoundFinish()
 
 #%%
 
