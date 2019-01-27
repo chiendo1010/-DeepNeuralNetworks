@@ -14,17 +14,17 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train = 10000
-m_test = 500
+m_train_take = 10000
+m_test_take = 500
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
 train_y = train_y[permutation]
 
-train_x_orig = train_x_orig[0:m_train, :]
-train_y = train_y[0:m_train]
+train_x_orig = train_x_orig[0:m_train_take, :]
+train_y = train_y[0:m_train_take]
 
-test_x_orig = test_x_orig[0:m_test, :]
-test_y = test_y[0:m_test]
+test_x_orig = test_x_orig[0:m_test_take, :]
+test_y = test_y[0:m_test_take]
 
 #%%
 # Plot
@@ -62,7 +62,7 @@ test_x = test_x_flatten/255.
 layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
 
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.13, num_iterations = 2500, print_cost = True)
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.1, num_iterations = 1600, print_cost = True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 
