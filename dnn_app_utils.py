@@ -348,7 +348,7 @@ def L_model_backward(AL, Y, caches):
     
     # Initializing the backpropagation
     # dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
-    dAL = AL - Y
+    dAL = (AL - Y)/(AL * (1-AL))
     
     # Lth layer (SIGMOID -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
     current_cache = caches[L-1]
@@ -406,7 +406,7 @@ def predict(X, y, parameters):
     # Forward propagation
     probas, caches = L_model_forward(X, parameters)
 
-    
+
     a = np.max(probas, axis=0)
     p = np.argmax(probas, axis=0)
     for i in range(0,10):
