@@ -14,7 +14,7 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train_take = 10000
+m_train_take = 5000
 m_test_take = 500
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
@@ -58,11 +58,17 @@ train_x = train_x_flatten/255.
 test_x = test_x_flatten/255.
 
 #%%
-### CONSTANTS ###
-layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
+#  Gradient Checking
+layers_dims = [num_px*num_px, 2, 2, 10] # Use small model for checking
+parameters = initialize_parameters_deep(layers_dims)
+AL, caches = L_model_forward(train_x[:,0:5], parameters)
+grads = L_model_backward(AL, train_y[:,0:5], caches)
+gradient_check_n(parameters, grads, layers_dims, train_x[:,0:5], train_y[:,0:5])
 
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.1, num_iterations = 2000, print_cost = True)
+### CONSTANTS ###
+layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.09, num_iterations = 1500, print_cost = True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 playSoundFinish()
