@@ -79,8 +79,9 @@ grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches)
 gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], train_y[:,0:m_testGrad_take])
 
 #%%
-### CONSTANTS ###
+### layer model ###
 layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
+#%%
 parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.09, num_iterations = 1500, print_cost = True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
@@ -89,5 +90,10 @@ playSoundFinish()
 #%%
 filename = 'parameters.h5'
 save_dict_to_hdf5(parameters, filename)
+
+#%%
+parameters = load_dict_from_hdf5(filename)
+predictions_train = predict(train_x, train_y, parameters)
+predictions_test = predict(test_x, test_y, parameters)
 
 #%%
