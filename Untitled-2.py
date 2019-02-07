@@ -8,6 +8,18 @@ import matplotlib.pyplot as plt
 from dnn_app_utils import *
 from file_utils import *
 
+# %%
+# Only use for Colab
+!add-apt-repository -y ppa:alessandro-strada/ppa 2>&1 > /dev/null
+  
+from google.colab import drive
+drive.mount('/content/drive')
+
+#%%
+# Only use for Colab
+!rm -r datasets 
+#!mkdir datasets
+!cp -a '/content/drive/My Drive/Colab Notebooks/datasets/' '/content/'
 #%%
 # Load data
 train_x_orig, train_y, test_x_orig, test_y = load_data()
