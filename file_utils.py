@@ -1,3 +1,5 @@
+import h5py
+
 def save_dict_to_hdf5(dic, filename):
     """
     ....

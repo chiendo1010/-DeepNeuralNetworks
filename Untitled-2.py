@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 %load_ext autoreload
 %autoreload 2
 from dnn_app_utils import *
-from file_utils.py import *
+from file_utils import *
 
 #%%
 # Load data
