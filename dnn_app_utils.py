@@ -150,7 +150,7 @@ def initialize_parameters_deep(layer_dims):
                     bl -- bias vector of shape (layer_dims[l], 1)
     """
     
-    # np.random.seed(1)
+    # np.random.seed(3)
     parameters = {}
     L = len(layer_dims)            # number of layers in the network
 
@@ -401,11 +401,11 @@ def predict(X, y, parameters):
     """
     
     m = X.shape[1]
-    n = len(parameters) // 2 # number of layers in the neural network
+    # n = len(parameters) // 2 # number of layers in the neural network
     p = np.zeros((1,m))
     
     # Forward propagation
-    probas, caches = L_model_forward(X, parameters)
+    probas, _ = L_model_forward(X, parameters)
 
 
     # a = np.max(probas, axis=0)

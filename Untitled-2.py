@@ -3,10 +3,9 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-from dnn_app_utils import *
-
 %load_ext autoreload
 %autoreload 2
+from dnn_app_utils import *
 
 #%%
 # Load data
@@ -59,11 +58,12 @@ test_x = test_x_flatten/255.
 
 #%%
 #  Gradient Checking
-layers_dims = [num_px*num_px, 2, 2, 10] # Use small model for checking
+m_testGrad_take = 10
+layers_dims = [num_px*num_px, 3, 3, 10] # Use small model for checking
 parameters = initialize_parameters_deep(layers_dims)
-AL, caches = L_model_forward(train_x[:,0:5], parameters)
-grads = L_model_backward(AL, train_y[:,0:5], caches)
-gradient_check_n(parameters, grads, layers_dims, train_x[:,0:5], train_y[:,0:5])
+AL, caches = L_model_forward(train_x[:,0:m_testGrad_take], parameters)
+grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches)
+gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], train_y[:,0:m_testGrad_take])
 
 #%%
 ### CONSTANTS ###
