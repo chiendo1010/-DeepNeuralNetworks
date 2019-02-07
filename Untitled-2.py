@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 %load_ext autoreload
 %autoreload 2
 from dnn_app_utils import *
+from file_utils.py import *
 
 #%%
 # Load data
@@ -74,6 +75,7 @@ predictions_test = predict(test_x, test_y, parameters)
 playSoundFinish()
 
 #%%
-
+filename = 'parameters.h5'
+save_dict_to_hdf5(parameters, filename)
 
 #%%
