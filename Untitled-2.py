@@ -82,7 +82,8 @@ gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], t
 ### layer model ###
 layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.09, num_iterations = 1500, print_cost = True)
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True)
+# parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True, lambd = 0.01)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 playSoundFinish()
@@ -92,7 +93,7 @@ filename = 'parameters.h5'
 save_dict_to_hdf5(parameters, filename)
 
 #%%
-parameters = load_dict_from_hdf5(filename)
+parameters = load_dict_from_hdf5('parameters.h5')
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 
