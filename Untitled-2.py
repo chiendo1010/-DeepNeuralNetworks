@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 %autoreload 2
 from dnn_app_utils import *
 from file_utils import *
+from reg_utils import *
 
 # %%
 # Only use for Colab
@@ -75,12 +76,12 @@ m_testGrad_take = 10
 layers_dims = [num_px*num_px, 3, 3, 10] # Use small model for checking
 parameters = initialize_parameters_deep(layers_dims)
 AL, caches = L_model_forward(train_x[:,0:m_testGrad_take], parameters)
-grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches)
+grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches, lambd = 0)
 gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], train_y[:,0:m_testGrad_take])
 
 #%%
 ### layer model ###
-layers_dims = [num_px*num_px, 20, 7, 5, 10] #  4-layer model
+layers_dims = [num_px*num_px, 30, 30, 10, 10] #  X-layer model
 #%%
 parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True)
 # parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True, lambd = 0.01)
@@ -96,5 +97,38 @@ save_dict_to_hdf5(parameters, filename)
 parameters = load_dict_from_hdf5('parameters.h5')
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
+
+#%%
+train_X, train_Y, test_X, test_Y = load_2D_dataset()
+
+#%%
+# train_X.shape
+layers_dims = [train_X.shape[0], 20, 3, 1]
+parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True)
+print ("On the training set:")
+predictions_train = predict(train_X, train_Y, parameters)
+print ("On the test set:")
+predictions_test = predict(test_X, test_Y, parameters)
+
+#%%
+parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True, lambd = 0.7)
+print ("On the train set:")
+predictions_train = predict(train_X, train_Y, parameters)
+print ("On the test set:")
+predictions_test = predict(test_X, test_Y, parameters)
+
+#%%
+# parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 3547, print_cost = True, keep_prob = 0.86)
+parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True, keep_prob = 0.86)
+# parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True)
+
+print ("On the train set:")
+predictions_train = predict(train_X, train_Y, parameters)
+print ("On the test set:")
+predictions_test = predict(test_X, test_Y, parameters)
+
+#%%
+layers_dims = [train_X.shape[0], 20, 3, 1]
+
 
 #%%

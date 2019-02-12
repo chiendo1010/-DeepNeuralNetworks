@@ -74,10 +74,14 @@ def relu_backward(dA, cache):
     """
     
     Z = cache
-    dZ = np.array(dA, copy=True) # just converting dz to a correct object.
+    # -------Way 1---------
+    # dZ = np.array(dA, copy=True) # just converting dz to a correct object.
     
     # When z <= 0, you should set dz to 0 as well. 
-    dZ[Z <= 0] = 0
+    # dZ[Z <= 0] = 0
+    
+    # -------Way 2---------
+    dZ = np.multiply(dA, np.int64(Z > 0))
     
     assert (dZ.shape == Z.shape)
     
@@ -149,12 +153,13 @@ def initialize_parameters_deep(layer_dims):
                     bl -- bias vector of shape (layer_dims[l], 1)
     """
     
-    # np.random.seed(3)
+    np.random.seed(3)
     parameters = {}
     L = len(layer_dims)            # number of layers in the network
 
     for l in range(1, L):
-        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) * np.sqrt(2./layer_dims[l-1])
+        # parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) * np.sqrt(2./layer_dims[l-1])
+        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1])
         parameters['b' + str(l)] = np.zeros((layer_dims[l], 1))
         
         assert(parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l-1]))
@@ -215,7 +220,7 @@ def linear_activation_forward(A_prev, W, b, activation):
 
     return A, cache
 
-def L_model_forward(X, parameters):
+def L_model_forward(X, parameters, keep_prob = 1):
     """
     Implement forward propagation for the [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID computation
     
@@ -230,19 +235,32 @@ def L_model_forward(X, parameters):
                 the cache of linear_sigmoid_forward() (there is one, indexed L-1)
     """
     caches = []
+    dropout = {}
     A = X
     L = len(parameters) // 2                  # number of layers in the neural network
-    
+    np.random.seed(1)
+
     # Implement [LINEAR -> RELU]*(L-1). Add "cache" to the "caches" list.
-    for l in range(1, L):
+    for l in range(1, L):        
         A_prev = A 
         A, cache = linear_activation_forward(A_prev, parameters['W' + str(l)], parameters['b' + str(l)], activation = "relu")
+        # -------DROPOUT--------
+        if keep_prob < 1:
+            dropout['D' + str(l)] = np.random.rand(A.shape[0], A.shape[1])
+            dropout['D' + str(l)] = (dropout['D' + str(l)] < keep_prob)
+            A = np.multiply(A, dropout['D' + str(l)])
+            A = np.divide(A, keep_prob)
+            # print("l in forword: " + str(l))
+            # print(A)
         caches.append(cache)
     
     # Implement LINEAR -> SIGMOID. Add "cache" to the "caches" list.
     AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "sigmoid")
     caches.append(cache)
     
+    if keep_prob < 1:
+        # print("Len dropout: " + str(len(dropout)))
+        caches.append(dropout)
             
     return AL, caches
 
@@ -260,11 +278,13 @@ def compute_cost(AL, Y):
     
     m = Y.shape[1]
 
+    # use for output layer has only one unit 
+    logprobs = np.multiply(-np.log(AL),Y) + np.multiply(-np.log(1 - AL), 1 - Y)
+    cost = 1./m * np.nansum(logprobs)
     
-    one_hot = one_hot_encode(Y, AL.shape[0])
-    # Compute loss from aL and y.
-    # cost = (1./m) * np.sum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
-    cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    # one_hot = one_hot_encode(y, al.shape[0])
+    # # compute loss from al and y.
+    # cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
     
     cost = np.squeeze(cost)      # To make sure your cost's shape is what we expect (e.g. this turns [[17]] into 17).
     assert(cost.shape == ())
@@ -353,7 +373,7 @@ def linear_activation_backward(dA, cache, lambd, activation):
     
     return dA_prev, dW, db
 
-def L_model_backward(AL, Y, caches, lambd):
+def L_model_backward(AL, Y, caches, lambd, keep_prob):
     """
     Implement the backward propagation for the [LINEAR->RELU] * (L-1) -> LINEAR -> SIGMOID group
     
@@ -371,26 +391,52 @@ def L_model_backward(AL, Y, caches, lambd):
              grads["db" + str(l)] = ... 
     """
     grads = {}
+
+    if keep_prob < 1:
+        D_array = caches.pop()
+
+
     L = len(caches) # the number of layers
-    m = AL.shape[1]
-    Y = one_hot_encode(Y, AL.shape[0])
-    Y = Y.reshape(AL.shape) # after this line, Y is the same shape as AL
+    # print("Len of caches: " + str(L))
+    # m = AL.shape[1]
+    # Y = one_hot_encode(Y, AL.shape[0])
+    # Y = Y.reshape(AL.shape) # after this line, Y is the same shape as AL
     
     # Initializing the backpropagation
     # dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
-    dAL = (AL - Y)/(AL * (1-AL))
+    # dAL = (AL - Y)/(AL * (1-AL))
     
     # Lth layer (SIGMOID -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
     current_cache = caches[L-1]
-    grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, current_cache, lambd, activation = "sigmoid")
+    # grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, current_cache, lambd, activation = "sigmoid")
     
+    # ----------New way--------------------
+    linear_cache, _ = current_cache
+    dZL = AL - Y
+    grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = linear_backward(dZL, linear_cache, lambd)
+
+    # -------DROPOUT--------
+    if keep_prob < 1:
+        grads["dA" + str(L-1)] = np.multiply(grads["dA" + str(L-1)] , D_array["D" + str(L-1)])
+        grads["dA" + str(L-1)] = np.divide(grads["dA" + str(L-1)], keep_prob)
+   
     for l in reversed(range(L-1)):
         # lth layer: (RELU -> LINEAR) gradients.
         current_cache = caches[l]
         dA_prev_temp, dW_temp, db_temp = linear_activation_backward(grads["dA" + str(l + 1)], current_cache, lambd, activation = "relu")
+        
+        # -------DROPOUT--------
+        if keep_prob < 1:
+            if l > 0:
+                dA_prev_temp = np.multiply(dA_prev_temp , D_array["D" + str(l)])
+                dA_prev_temp = np.divide(dA_prev_temp, keep_prob)
+
         grads["dA" + str(l)] = dA_prev_temp
         grads["dW" + str(l + 1)] = dW_temp
         grads["db" + str(l + 1)] = db_temp
+
+    
+
 
     return grads
 
@@ -439,10 +485,6 @@ def predict(X, y, parameters):
 
     # a = np.max(probas, axis=0)
     p = np.argmax(probas, axis=0)
-    # for i in range(0,10):
-    #     print('---' + str(probas[i,5]))
-    # print(a[5])
-    # print(p[5])
 
     #print results
     #print ("predictions: " + str(p))
@@ -506,7 +548,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     for i in range(0, num_iterations):
 
         # Forward propagation: [LINEAR -> RELU]*(L-1) -> LINEAR -> SIGMOID.
-        AL, caches = L_model_forward(X, parameters)
+        AL, caches = L_model_forward(X, parameters, keep_prob)
         
         # Cost function
         if lambd == 0:
@@ -517,23 +559,18 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
         # Backward propagation.
         assert(lambd==0 or keep_prob==1)    # it is possible to use both L2 regularization and dropout, 
                                             # but this assignment will only explore one at a time
-    
-        # Backward propagation.
-        grads = L_model_backward(AL, Y, caches, lambd)
 
-        # if lambd == 0 and keep_prob == 1:
-        #     grads = L_model_backward(X, Y, cache)
-        # elif lambd != 0:
-        #     grads = backward_propagation_with_regularization(X, Y, cache, lambd)
-        # elif keep_prob < 1:
-        #     grads = backward_propagation_with_dropout(X, Y, cache, keep_prob)
+        # Backward propagation.
+        grads = L_model_backward(AL, Y, caches, lambd, keep_prob)
 
         # Update parameters.
         parameters = update_parameters(parameters, grads, learning_rate)
                 
         # Print the cost every 100 training example
-        if print_cost and (i % 100 == 0 or i == num_iterations-1):
-            print ("Cost after iteration %i: %f" %(i, cost))
+        if print_cost and (i % 10000 == 0 or i == num_iterations-1):
+            # print ("Cost after iteration %i: %f" %(i, cost))
+            print("Cost after iteration {}: {}".format(i, cost))
+        if print_cost and i % 1000 == 0:
             costs.append(cost)
             
     # plot the cost
@@ -622,7 +659,6 @@ def dictionary_to_vector(parameters):
     count = 0
     L = len(parameters) // 2                  # number of layers in the neural network
     for l in range(0, L):
-        # print(l)
         # flatten parameter
         new_vector = np.reshape(parameters['W' + str(l+1)], (-1,1))
         
