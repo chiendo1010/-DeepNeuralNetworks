@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import struct
 import os   #Use for playing sound.
-
+import time
 
 
 
@@ -153,7 +153,7 @@ def initialize_parameters_deep(layer_dims):
                     bl -- bias vector of shape (layer_dims[l], 1)
     """
     
-    np.random.seed(3)
+    # np.random.seed(3)
     parameters = {}
     L = len(layer_dims)            # number of layers in the network
 
@@ -238,7 +238,7 @@ def L_model_forward(X, parameters, keep_prob = 1):
     dropout = {}
     A = X
     L = len(parameters) // 2                  # number of layers in the neural network
-    np.random.seed(1)
+    # np.random.seed(1)
 
     # Implement [LINEAR -> RELU]*(L-1). Add "cache" to the "caches" list.
     for l in range(1, L):        
@@ -250,8 +250,6 @@ def L_model_forward(X, parameters, keep_prob = 1):
             dropout['D' + str(l)] = (dropout['D' + str(l)] < keep_prob)
             A = np.multiply(A, dropout['D' + str(l)])
             A = np.divide(A, keep_prob)
-            # print("l in forword: " + str(l))
-            # print(A)
         caches.append(cache)
     
     # Implement LINEAR -> SIGMOID. Add "cache" to the "caches" list.
@@ -259,7 +257,6 @@ def L_model_forward(X, parameters, keep_prob = 1):
     caches.append(cache)
     
     if keep_prob < 1:
-        # print("Len dropout: " + str(len(dropout)))
         caches.append(dropout)
             
     return AL, caches
@@ -279,12 +276,12 @@ def compute_cost(AL, Y):
     m = Y.shape[1]
 
     # use for output layer has only one unit 
-    logprobs = np.multiply(-np.log(AL),Y) + np.multiply(-np.log(1 - AL), 1 - Y)
-    cost = 1./m * np.nansum(logprobs)
+    # logprobs = np.multiply(-np.log(AL),Y) + np.multiply(-np.log(1 - AL), 1 - Y)
+    # cost = 1./m * np.nansum(logprobs)
     
-    # one_hot = one_hot_encode(y, al.shape[0])
+    one_hot = one_hot_encode(Y, AL.shape[0])
     # # compute loss from al and y.
-    # cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
     
     cost = np.squeeze(cost)      # To make sure your cost's shape is what we expect (e.g. this turns [[17]] into 17).
     assert(cost.shape == ())
@@ -399,8 +396,8 @@ def L_model_backward(AL, Y, caches, lambd, keep_prob):
     L = len(caches) # the number of layers
     # print("Len of caches: " + str(L))
     # m = AL.shape[1]
-    # Y = one_hot_encode(Y, AL.shape[0])
-    # Y = Y.reshape(AL.shape) # after this line, Y is the same shape as AL
+    Y = one_hot_encode(Y, AL.shape[0])
+    Y = Y.reshape(AL.shape) # after this line, Y is the same shape as AL
     
     # Initializing the backpropagation
     # dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
@@ -544,6 +541,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     costs = []                         # keep track of cost
     
     parameters = initialize_parameters_deep(layers_dims)
+    tic = time.clock()
     # Loop (gradient descent)
     for i in range(0, num_iterations):
 
@@ -567,17 +565,19 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
         parameters = update_parameters(parameters, grads, learning_rate)
                 
         # Print the cost every 100 training example
-        if print_cost and (i % 10000 == 0 or i == num_iterations-1):
+        if print_cost and (i % 100 == 0 or i == num_iterations-1):
             # print ("Cost after iteration %i: %f" %(i, cost))
             print("Cost after iteration {}: {}".format(i, cost))
-        if print_cost and i % 1000 == 0:
+        if print_cost and i % 100 == 0:
             costs.append(cost)
             
+    toc = time.clock()
+    print("Time consuming: %.2f s" %(toc - tic))
     # plot the cost
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
     plt.xlabel('iterations (per tens)')
-    plt.title("Learning rate =" + str(learning_rate) + " , lambd = " +str(lambd))
+    plt.title("Learning rate =" + str(learning_rate) + " , lambd = " +str(lambd) + ", keep_prob = " + str(keep_prob))
     plt.show()
     
     return parameters

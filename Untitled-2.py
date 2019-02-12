@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 %autoreload 2
 from dnn_app_utils import *
 from file_utils import *
-from reg_utils import *
+# from reg_utils import *
 
 # %%
 # Only use for Colab
@@ -27,7 +27,7 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train_take = 5000
+m_train_take = 3000
 m_test_take = 500
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
@@ -76,7 +76,7 @@ m_testGrad_take = 10
 layers_dims = [num_px*num_px, 3, 3, 10] # Use small model for checking
 parameters = initialize_parameters_deep(layers_dims)
 AL, caches = L_model_forward(train_x[:,0:m_testGrad_take], parameters)
-grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches, lambd = 0)
+grads = L_model_backward(AL, train_y[:,0:m_testGrad_take], caches, lambd = 0,keep_prob = 1)
 gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], train_y[:,0:m_testGrad_take])
 
 #%%
