@@ -26,8 +26,8 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train_take = 300
-m_test_take = 500
+m_train_take = 25000
+m_test_take = 10000
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
 train_y = train_y[permutation]
@@ -82,11 +82,11 @@ gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], t
 ### layer model ###
 layers_dims = [num_px*num_px, 30, 30, 10, 10] #  X-layer model
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True)
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 200, print_cost = True, mini_batch_size = 256)
 # parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate = 0.06, num_iterations = 1500, print_cost = True, lambd = 0.01)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
-playSoundFinish()
+
 
 #%%
 filename = 'parameters.h5'
@@ -101,43 +101,9 @@ predictions_test = predict(test_x, test_y, parameters)
 train_X, train_Y, test_X, test_Y = load_2D_dataset()
 
 #%%
-# train_X.shape
-layers_dims = [train_X.shape[0], 20, 3, 1]
-parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True)
-print ("On the training set:")
-predictions_train = predict(train_X, train_Y, parameters)
-print ("On the test set:")
-predictions_test = predict(test_X, test_Y, parameters)
-
-#%%
-parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True, lambd = 0.7)
-print ("On the train set:")
-predictions_train = predict(train_X, train_Y, parameters)
-print ("On the test set:")
-predictions_test = predict(test_X, test_Y, parameters)
-
-#%%
-# parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 3547, print_cost = True, keep_prob = 0.86)
-parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True, keep_prob = 0.86)
-# parameters = L_layer_model(train_X, train_Y, layers_dims, learning_rate = 0.3, num_iterations = 30000, print_cost = True)
-
-print ("On the train set:")
-predictions_train = predict(train_X, train_Y, parameters)
-print ("On the test set:")
-predictions_test = predict(test_X, test_Y, parameters)
-
-#%%
-layers_dims = [train_X.shape[0], 20, 3, 1]
 
 
 #%%
-L = [1,2,3]       
-str1 = " ,".join(str(x) for x in L)
-print(str1)
-
-#%%
-IsRunOnColab()
-
 #%%
 
 

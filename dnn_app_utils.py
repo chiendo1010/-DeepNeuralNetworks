@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import struct
 import time
 from file_utils import playSoundFinish
+import math
 
 
 def load_data():
@@ -520,7 +521,7 @@ def one_hot_encode(data, n_classes):
 
 # GRADED FUNCTION: L_layer_model
 
-def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False, lambd = 0, keep_prob = 1):#lr was 0.009
+def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False, lambd = 0, keep_prob = 1, mini_batch_size = 64):#lr was 0.009
     """
     Implements a L-layer neural network: [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID.
     
@@ -536,7 +537,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     parameters -- parameters learnt by the model. They can then be used to predict.
     """
 
-    # np.random.seed(1)
+    seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
     costs = []                         # keep track of cost
     
     parameters = initialize_parameters_deep(layers_dims)
@@ -544,30 +545,40 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     # Loop (gradient descent)
     for i in range(0, num_iterations):
 
-        # Forward propagation: [LINEAR -> RELU]*(L-1) -> LINEAR -> SIGMOID.
-        AL, caches = L_model_forward(X, parameters, keep_prob)
-        
-        # Cost function
-        if lambd == 0:
-            cost = compute_cost(AL, Y)
-        else:
-            cost = compute_cost_with_regularization(AL, Y, parameters, lambd)
+        # Define the random minibatches. We increment the seed to reshuffle differently the dataset after each epoch
+        seed = seed + 1
+        minibatches = random_mini_batches(X, Y, mini_batch_size, seed)
 
-        # Backward propagation.
-        assert(lambd==0 or keep_prob==1)    # it is possible to use both L2 regularization and dropout, 
-                                            # but this assignment will only explore one at a time
+        for minibatch in minibatches:
+            
+            # Select a minibatch
+            (minibatch_X, minibatch_Y) = minibatch
 
-        # Backward propagation.
-        grads = L_model_backward(AL, Y, caches, lambd, keep_prob)
+            # Forward propagation: [LINEAR -> RELU]*(L-1) -> LINEAR -> SIGMOID.
+            AL, caches = L_model_forward(minibatch_X, parameters, keep_prob)
+            
+            # Cost function
+            if lambd == 0:
+                cost = compute_cost(AL, minibatch_Y)
+            else:
+                cost = compute_cost_with_regularization(AL, minibatch_Y, parameters, lambd)
 
-        # Update parameters.
-        parameters = update_parameters(parameters, grads, learning_rate)
-                
+            # Backward propagation.
+            assert(lambd==0 or keep_prob==1)    # it is possible to use both L2 regularization and dropout, 
+                                                # but this assignment will only explore one at a time
+
+            # Backward propagation.
+            grads = L_model_backward(AL, minibatch_Y, caches, lambd, keep_prob)
+
+            # Update parameters.
+            parameters = update_parameters(parameters, grads, learning_rate)
+       
+        num_iteration_print = 10
         # Print the cost every 100 training example
-        if print_cost and (i % 100 == 0 or i == num_iterations-1):
+        if print_cost and (i % num_iteration_print == 0 or i == num_iterations-1):
             # print ("Cost after iteration %i: %f" %(i, cost))
             print("Cost after iteration {}: {}".format(i, cost))
-        if print_cost and i % 100 == 0:
+        if print_cost and i % num_iteration_print == 0:
             costs.append(cost)
 
     print('\n')
@@ -708,3 +719,43 @@ def gradients_to_vector(gradients, layers_dims):
         theta = np.concatenate((theta, new_vector), axis=0)
 
     return theta
+
+# GRADED FUNCTION: random_mini_batches
+def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
+    """
+    Creates a list of random minibatches from (X, Y)
+    
+    Arguments:
+    X -- input data, of shape (input size, number of examples)
+    Y -- true "label" vector (1 for blue dot / 0 for red dot), of shape (1, number of examples)
+    mini_batch_size -- size of the mini-batches, integer
+    
+    Returns:
+    mini_batches -- list of synchronous (mini_batch_X, mini_batch_Y)
+    """
+    
+    np.random.seed(seed)            # To make your "random" minibatches the same as ours
+    m = X.shape[1]                  # number of training examples
+    mini_batches = []
+        
+    # Step 1: Shuffle (X, Y)
+    permutation = list(np.random.permutation(m))
+    shuffled_X = X[:, permutation]
+    shuffled_Y = Y[:, permutation].reshape((1,m))
+
+    # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
+    num_complete_minibatches = math.floor(m/mini_batch_size) # number of mini batches of size mini_batch_size in your partitionning
+    for k in range(0, num_complete_minibatches):
+        mini_batch_X = shuffled_X[:, k*mini_batch_size : (k+1) * mini_batch_size]
+        mini_batch_Y = shuffled_Y[:, k*mini_batch_size : (k+1) * mini_batch_size]
+        mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batches.append(mini_batch)
+    
+    # Handling the end case (last mini-batch < mini_batch_size)
+    if m % mini_batch_size != 0:
+        mini_batch_X = shuffled_X[:, (mini_batch_size * num_complete_minibatches)-1 : -1 ]
+        mini_batch_Y = shuffled_Y[:, (mini_batch_size * num_complete_minibatches)-1 : -1 ]
+        mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batches.append(mini_batch)
+    
+    return mini_batches
