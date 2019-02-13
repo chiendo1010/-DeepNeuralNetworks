@@ -1,6 +1,13 @@
 import numpy as np
 import h5py
 
+import IPython
+import numpy as np
+import os   #Use for playing sound.
+from IPython.display import Audio
+from IPython.display import display as d
+
+
 def save_dict_to_hdf5(dic, filename):
     """
     ....
@@ -38,3 +45,30 @@ def recursively_load_dict_contents_from_group(h5file, path):
         elif isinstance(item, h5py._hl.group.Group):
             ans[key] = recursively_load_dict_contents_from_group(h5file, path + key + '/')
     return ans
+
+def IsRunOnColab():
+    try:
+        import google.colab
+        return True
+    except:
+        return False
+
+def playSoundFinish():
+    if IsRunOnColab():
+        playSoundOnColab()
+    else:
+        duration = 2  # second
+        freq = 500  # Hz
+        os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+
+def playSoundOnColab():
+    print("Colab plays sound")
+    # Create a sound
+    framerate = 44100
+    t = np.linspace(0,5,framerate*5)
+    data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
+
+    # Generate a player for mono sound
+    d(Audio(data,rate=framerate, autoplay=True))
+
+

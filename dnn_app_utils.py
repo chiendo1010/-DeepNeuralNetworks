@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import struct
-import os   #Use for playing sound.
 import time
-
+from file_utils import playSoundFinish
 
 
 def load_data():
@@ -570,7 +569,10 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
             print("Cost after iteration {}: {}".format(i, cost))
         if print_cost and i % 100 == 0:
             costs.append(cost)
-            
+
+    print('\n')
+    layers_dims_str = "layers_dims = [" + " ,".join(str(x) for x in layers_dims) + "]"
+    print(layers_dims_str)
     toc = time.clock()
     print("Time consuming: %.2f s" %(toc - tic))
     # plot the cost
@@ -579,13 +581,9 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     plt.xlabel('iterations (per tens)')
     plt.title("Learning rate =" + str(learning_rate) + " , lambd = " +str(lambd) + ", keep_prob = " + str(keep_prob))
     plt.show()
-    
-    return parameters
+    playSoundFinish()
 
-def playSoundFinish():
-    duration = 2  # second
-    freq = 500  # Hz
-    os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+    return parameters
 
 
 # GRADED FUNCTION: gradient_check_n

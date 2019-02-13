@@ -7,16 +7,15 @@ import matplotlib.pyplot as plt
 %autoreload 2
 from dnn_app_utils import *
 from file_utils import *
-# from reg_utils import *
 
 # %%
+
 # Only use for Colab
 !add-apt-repository -y ppa:alessandro-strada/ppa 2>&1 > /dev/null
-  
+
 from google.colab import drive
 drive.mount('/content/drive')
 
-#%%
 # Only use for Colab
 !rm -r datasets 
 #!mkdir datasets
@@ -27,7 +26,7 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train_take = 3000
+m_train_take = 300
 m_test_take = 500
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
@@ -129,6 +128,17 @@ predictions_test = predict(test_X, test_Y, parameters)
 
 #%%
 layers_dims = [train_X.shape[0], 20, 3, 1]
+
+
+#%%
+L = [1,2,3]       
+str1 = " ,".join(str(x) for x in L)
+print(str1)
+
+#%%
+IsRunOnColab()
+
+#%%
 
 
 #%%
