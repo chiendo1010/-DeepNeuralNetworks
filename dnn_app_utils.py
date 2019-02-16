@@ -52,7 +52,6 @@ def relu(Z):
     A -- Post-activation parameter, of the same shape as Z
     cache -- a python dictionary containing "A" ; stored for computing the backward pass efficiently
     """
-    
     A = np.maximum(0,Z)
     
     assert(A.shape == Z.shape)
@@ -107,6 +106,25 @@ def sigmoid_backward(dA, cache):
     assert (dZ.shape == Z.shape)
     
     return dZ
+
+def softmax(Z):
+    """
+    Implement the RELU function.
+
+    Arguments:
+    Z -- Output of the linear layer, of any shape
+
+    Returns:
+    A -- Post-activation parameter, of the same shape as Z
+    cache -- a python dictionary containing "A" ; stored for computing the backward pass efficiently
+    """
+    t = np.exp(Z)
+    A = t/np.sum(t,axis=0)
+    
+    assert(A.shape == Z.shape)
+    
+    cache = Z 
+    return A, cache
 
 def initialize_parameters(n_x, n_h, n_y):
     """
@@ -214,6 +232,10 @@ def linear_activation_forward(A_prev, W, b, activation):
         # Inputs: "A_prev, W, b". Outputs: "A, activation_cache".
         Z, linear_cache = linear_forward(A_prev, W, b)
         A, activation_cache = relu(Z)
+    elif activation == "softmax":
+         # Inputs: "A_prev, W, b". Outputs: "A, activation_cache".
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = softmax(Z)
     
     assert (A.shape == (W.shape[0], A_prev.shape[1]))
     cache = (linear_cache, activation_cache)
@@ -253,7 +275,8 @@ def L_model_forward(X, parameters, keep_prob = 1):
         caches.append(cache)
     
     # Implement LINEAR -> SIGMOID. Add "cache" to the "caches" list.
-    AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "sigmoid")
+    # AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "sigmoid")
+    AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "softmax")
     caches.append(cache)
     
     if keep_prob < 1:
@@ -281,7 +304,10 @@ def compute_cost(AL, Y):
     
     one_hot = one_hot_encode(Y, AL.shape[0])
     # # compute loss from al and y.
-    cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    # HardMax
+    # cost = (1./m) * np.nansum(-np.multiply(one_hot,np.log(AL)) - np.multiply(1-one_hot, np.log(1-AL)))
+    # SoftMax
+    cost = (-1./m) * np.nansum( np.multiply(one_hot,np.log(AL) ) )
     
     cost = np.squeeze(cost)      # To make sure your cost's shape is what we expect (e.g. this turns [[17]] into 17).
     assert(cost.shape == ())
@@ -521,7 +547,7 @@ def one_hot_encode(data, n_classes):
 
 # GRADED FUNCTION: L_layer_model
 
-def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, num_epochs = 3000, print_cost=False, lambd = 0, keep_prob = 1, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8,):#lr was 0.009
+def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.1, num_epochs = 3000, print_cost=False, lambd = 0, keep_prob = 1, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8,):#lr was 0.009
 # def model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 10000, print_cost = True):
     """
     Implements a L-layer neural network: [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID.
@@ -541,7 +567,7 @@ def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, num_epoc
     costs = []                       # to keep track of the cost
     t = 0                            # initializing the counter required for Adam update
     seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
-    
+    learning_rate_array = []         # to keep track of the learning rate
     num_iteration_print = 10
     
     parameters = initialize_parameters_deep(layers_dims)
@@ -555,13 +581,18 @@ def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, num_epoc
     elif optimizer == "adam":
         v, s = initialize_adam(parameters)
 
-
+    learning_rate_array.append(learning_rate)
     # Loop (gradient descent)
-    for i in range(0, num_epochs):
+    for epochs in range(0, num_epochs):
 
         # Define the random minibatches. We increment the seed to reshuffle differently the dataset after each epoch
         seed = seed + 1
         minibatches = random_mini_batches(X, Y, mini_batch_size, seed)
+
+        # if epochs % num_iteration_print == 0:
+        #     learning_rate = np.power(0.98, epochs) * learning_rate
+        #     learning_rate_array.append(learning_rate)
+        #     print("--learning_rate: %.4f" %learning_rate )
 
         for minibatch in minibatches:
             
@@ -596,10 +627,10 @@ def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, num_epoc
 
        
         # Print the cost every num_iteration_print training example
-        if print_cost and (i % num_iteration_print == 0 or i == num_epochs-1):
+        if print_cost and (epochs % num_iteration_print == 0 or epochs == num_epochs-1):
             # print ("Cost after iteration %i: %f" %(i, cost))
-            print("Cost after iteration {}: {}".format(i, cost))
-        if print_cost and i % num_iteration_print == 0:
+            print("Cost after iteration {}: {}".format(epochs, cost))
+        if print_cost and epochs % num_iteration_print == 0:
             costs.append(cost)
 
     print('\n')
@@ -608,10 +639,20 @@ def L_layer_model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, num_epoc
     print("optimizer = " + optimizer)
     toc = time.clock()
     print("Time consuming: %.2f s" %(toc - tic))
+
+    # #plot learning rate
+    # plt.figure(1)
+    # plt.plot(np.squeeze(learning_rate_array))
+    # plt.ylabel('learning rate')
+    # plt.xlabel('iterations (per %i)' %num_iteration_print)
+    # plt.title("Learning rate =" + str(learning_rate))
+    # plt.show()
+
     # plot the cost
+    plt.figure(2)
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
-    plt.xlabel('iterations (per tens)')
+    plt.xlabel('iterations (per  %i)' %num_iteration_print)
     plt.title("Learning rate =" + str(learning_rate) + " , lambd = " +str(lambd) + ", keep_prob = " + str(keep_prob))
     plt.show()
     playSoundFinish()

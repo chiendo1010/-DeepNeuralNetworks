@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 %autoreload 2
 from dnn_app_utils import *
 from file_utils import *
-from cs231n.data_utils import load_CIFAR10
+from cs231n.data_utils import get_CIFAR10_data
 
 # %%
 
@@ -27,7 +27,7 @@ train_x_orig, train_y, test_x_orig, test_y = load_data()
 
 # %%
 # Shuffle data, and use one small part
-m_train_take = 25000
+m_train_take = 5000
 m_test_take = 10000
 permutation = list(np.random.permutation(train_x_orig.shape[0]))
 train_x_orig = train_x_orig[permutation, :]
@@ -83,7 +83,7 @@ gradient_check_n(parameters, grads, layers_dims, train_x[:,0:m_testGrad_take], t
 ### layer model ###
 layers_dims = [num_px*num_px, 30, 50, 30, 10] #  X-layer model
 #%%
-parameters = L_layer_model(train_x, train_y, layers_dims, optimizer = "momentum", learning_rate = 0.03, num_epochs = 100, print_cost = True, mini_batch_size = 128)
+parameters = L_layer_model(train_x, train_y, layers_dims, optimizer = "adam", learning_rate = 0.01, num_epochs = 100, print_cost = True, mini_batch_size = 128)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 
@@ -108,7 +108,8 @@ try:
 except:
    pass
 
-X_train, y_train, X_val, y_val, X_test, y_test = get_CIFAR10_data()
+# X_train, y_train, X_val, y_val, X_test, y_test = get_CIFAR10_data()
+X_train, y_train, X_val, y_val, X_test, y_test = get_CIFAR10_data(num_training=9000, num_validation=1000, num_test=1000)
 train_x_orig = X_train
 train_y = y_train
 test_x_orig = X_test
@@ -175,5 +176,13 @@ for j in range(5):
 #%%
 import sys
 sys.modules[__name__].__dict__.clear()
+
+#%%
+layers_dims = [num_px*num_px*3, 200, 100, 100, 50, 10] #  X-layer model
+# %%
+parameters = L_layer_model(train_x, train_y, layers_dims, optimizer = "adam", learning_rate = 0.01, num_epochs = 50, print_cost = True, mini_batch_size = 128)
+predictions_train = predict(train_x, train_y, parameters)
+predictions_test = predict(test_x, test_y, parameters)
+
 
 #%%
